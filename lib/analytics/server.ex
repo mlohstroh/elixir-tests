@@ -1,10 +1,15 @@
 defmodule Analytics.Server do
+  @port 1234
   @behaviour :elli_handler
   require Logger
   
   require Record
   import Record, only: [defrecord: 2, extract: 2]
   defrecord :req, extract(:req, from_lib: "elli/include/elli.hrl")
+
+  def start_link do
+    :elli.start_link([ callback: Analytics.Server, port: @port])
+  end
 
   def handle(req, _args) do
     method = :elli_request.method(req)

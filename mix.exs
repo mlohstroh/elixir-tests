@@ -28,6 +28,9 @@ defmodule Analytics.Mixfile do
   #
   # Type "mix help deps" for more examples and options
   defp deps do
-    [{:elli, git: "git://github.com/knutin/elli.git"}]
+    [ 
+      {:elli, git: "git://github.com/knutin/elli.git"},
+      {:exredis, ">= 0.2.4"}
+    ]
   end
 end
