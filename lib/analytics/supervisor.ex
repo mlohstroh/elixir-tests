@@ -7,10 +7,18 @@ defmodule Analytics.Supervisor do
 
   def init(:ok) do
     children = [
-      worker(Analytics.Server, []),
-      worker(Analytics.Processor, [])
+      worker(Analytics.Server, [])
     ]
-
+    # |> processor(3)
+    
     supervise(children, strategy: :one_for_one)
+  end
+
+  def processor(list, n) do
+    temp = for i <- 0..n do
+      worker(Analytics.Processor, [], id: "Processor #{i}")
+    end
+
+    list ++ temp
   end
 end

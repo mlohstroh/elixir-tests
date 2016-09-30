@@ -8,6 +8,7 @@ defmodule Analytics.Server do
   defrecord :req, extract(:req, from_lib: "elli/include/elli.hrl")
 
   def start_link do
+    IO.puts "Listening on port #{@port}"
     :elli.start_link([ callback: Analytics.Server, port: @port])
   end
 
@@ -23,6 +24,16 @@ defmodule Analytics.Server do
     { :ok, [], "Your name is #{name}"}
   end
 
+  def handle(:POST, "/track", req) do
+    # Add a sanitization step in here
+    :elli_request.body(req)
+    |> Analytics.Collector.collect
+
+    # response = [ {"response", "ok" } ]
+    # |> jsonify
+    {:ok, [ {"Content-Type", "application/json"} ], "1"}
+  end
+
   def handle(_, _, _req) do
     { 404, [], "Not Found" }
   end
@@ -34,13 +45,13 @@ defmodule Analytics.Server do
   end
 
   def handle_event(:request_complete, [request, code, _headers, _body, timings], _) do
-    method = :elli_request.method(request)
-    path = :elli_request.path(request)
-    |> full_path
-    { _,request_start } = :lists.keyfind(:request_start, 1, timings)
-    { _, request_end } = :lists.keyfind(:request_end, 1, timings)
-    diff = :timer.now_diff(request_end, request_start)
-    Logger.info "#{method} \"#{path}\" #{code} - #{diff}μs"
+    # method = :elli_request.method(request)
+    # path = :elli_request.path(request)
+    # |> full_path
+    # { _,request_start } = :lists.keyfind(:request_start, 1, timings)
+    # { _, request_end } = :lists.keyfind(:request_end, 1, timings)
+    # diff = :timer.now_diff(request_end, request_start)
+    # Logger.info "#{method} \"#{path}\" #{code} - #{diff}μs"
     :ok
   end
 
@@ -50,5 +61,9 @@ defmodule Analytics.Server do
 
   def full_path(path) do
     "/#{Enum.join(path, "/")}"
+  end
+
+  def jsonify(list) do
+    Poison.Encoder.encode(list)
   end
 end

@@ -1,13 +1,15 @@
 defmodule Analytics.Processor do
   @redis_key "analytics:jobs"
+
   def start_link do
-    # ignored num for now
     { :ok, client } = Exredis.start_link
     pid = spawn_link(__MODULE__, :work, [client])
     { :ok, pid }
   end
 
   def work(redis) do
+    seed
+
     try do
       case next_job(redis) do
         :undefined ->
@@ -23,7 +25,9 @@ defmodule Analytics.Processor do
   end
 
   def wait do
-    :timer.sleep(5000)
+    random = :random.uniform()
+    wait_time = 5000 - (random * 100)
+    :timer.sleep(round(wait_time))
   end
 
   def next_job(redis) do
@@ -32,6 +36,11 @@ defmodule Analytics.Processor do
   end
 
   def perform_job(events) do
-    IO.puts "Performing job..."
+    # IO.puts "Performing job..."
+  end
+
+  def seed do
+    { a, b, c } = :os.timestamp()
+    :random.seed(a, b, c)
   end
 end
